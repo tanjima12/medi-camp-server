@@ -147,23 +147,6 @@ app.post("/campUpdateInfo/:id", async (req, res) => {
   const result = await campCollection.updateOne(filter, campInfo, options);
   res.send(result);
 });
-app.delete("/campDlt/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const query = { _id: new ObjectId(id) };
-
-    const result = await campCollection.deleteOne(query);
-
-    if (result.deletedCount === 1) {
-      res.status(200).json({ message: "Camp deleted successfully" });
-    } else {
-      res.status(404).json({ message: "Camp not found" });
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
 
 app.get("/", (req, res) => {
   res.send("medical camp side server is running");
@@ -190,6 +173,13 @@ app.post("/updateInfo/:id", async (req, res) => {
     },
   };
   const result = await userCollection.updateOne(filter, Info, options);
+  res.send(result);
+});
+
+app.delete("/campDlt/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await campCollection.deleteOne(query);
   res.send(result);
 });
 
