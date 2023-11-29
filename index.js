@@ -35,6 +35,7 @@ const campCollection = client.db("mediCamp").collection("camp");
 const joinCampCollection = client.db("mediCamp").collection("joinCamp");
 const userCollection = client.db("mediCamp").collection("users");
 const paymentCollection = client.db("mediCamp").collection("payment");
+const feedbackCollection = client.db("mediCamp").collection("feedback");
 
 // app.get("/camp", async (req, res) => {
 //   const result = await campCollection.find().toArray();
@@ -95,6 +96,7 @@ app.get("/users", async (req, res) => {
   const result = await userCollection.find(query).toArray();
   res.send(result);
 });
+
 app.delete("/users/:id", async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
@@ -118,23 +120,8 @@ app.patch("/users/admin/:id", async (req, res) => {
   });
 
   app.get("/camp", async (req, res) => {
-    // let query = {};
-    let sortObj = {};
-    let queryObj = {};
-    const category = req.query.category;
-    console.log(category);
+    const result = campCollection.find().toArray();
 
-    const sortField = req.query.sortField;
-    const sortOrder = req.query.sortOrder;
-
-    if (sortField && sortOrder) {
-      sortObj[sortField] = sortOrder;
-    }
-    if (category) {
-      queryObj.Category = category;
-    }
-    const cursor = campCollection.find(queryObj).sort(sortObj);
-    const result = await cursor.toArray();
     res.send(result);
   });
 });
@@ -173,15 +160,27 @@ app.get("/payment", async (req, res) => {
 app.post("/addCamp", async (req, res) => {
   const newCamp = req.body;
   console.log(newCamp);
-  // newCamp.time = parseInt(newCamp.time);
+  //
   const result = await campCollection.insertOne(newCamp);
   res.send(result);
 });
+app.post("/feedback", async (req, res) => {
+  const feed = req.body;
+  console.log(feed);
 
-app.post("/updateInfo/:id", async (req, res) => {
+  const result = await feedbackCollection.insertOne(feed);
+  res.send(result);
+});
+app.get("/feedback", async (req, res) => {
+  const result = feedbackCollection.find().toArray();
+
+  res.send(result);
+});
+
+app.patch("/updateInfo/:id", async (req, res) => {
   const id = req.params.id;
   const filter = { _id: new ObjectId(id) };
-  const options = { upsert: true };
+
   const profileInfo = req.body;
   const Info = {
     $set: {
@@ -190,7 +189,7 @@ app.post("/updateInfo/:id", async (req, res) => {
       role: profileInfo.role,
     },
   };
-  const result = await userCollection.updateOne(filter, Info, options);
+  const result = await userCollection.updateOne(filter, Info);
   res.send(result);
 });
 
