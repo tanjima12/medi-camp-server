@@ -1,9 +1,14 @@
 const express = require("express");
+const stripe = require("stripe")(
+  "sk_test_51OHCPOEpZvWySofiQKxIAgubuOMbN7fyhfc2rkvMRcWJgLjA1pF6MpnN3G0wZSq4hBRtbm3AHHPIrXIFXa5VMITQ00AUYXMUxl"
+);
 const cors = require("cors");
 const app = express();
 var jwt = require("jsonwebtoken");
 require("dotenv").config();
+// console.log("Stripe API Key:", process.env.STRIPE_API_KEY);
 const port = process.env.PORT || 5004;
+
 app.use(express.json());
 app.use(cors());
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -29,6 +34,7 @@ dbConnect();
 const campCollection = client.db("mediCamp").collection("camp");
 const joinCampCollection = client.db("mediCamp").collection("joinCamp");
 const userCollection = client.db("mediCamp").collection("users");
+const paymentCollection = client.db("mediCamp").collection("payment");
 
 // app.get("/camp", async (req, res) => {
 //   const result = await campCollection.find().toArray();
@@ -155,6 +161,14 @@ app.post("/campUpdateInfo/:id", async (req, res) => {
 app.get("/", (req, res) => {
   res.send("medical camp side server is running");
 });
+app.get("/payment", async (req, res) => {
+  let query = {};
+  if (req.query?.email) {
+    query = { email: req.query.email };
+  }
+  const result = await paymentCollection.find(query).toArray();
+  res.send(result);
+});
 
 app.post("/addCamp", async (req, res) => {
   const newCamp = req.body;
@@ -189,8 +203,73 @@ app.delete("/campDlt/:id", async (req, res) => {
 app.delete("/regisDlt/:id", async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
-  const result = await joinCampCollection.deleteOne(query); // Change to joinCampCollection
+  const result = await joinCampCollection.deleteOne(query);
   res.send(result);
+});
+
+app.post("/create-payment-intent", async (req, res) => {
+  const { fees } = req.body;
+  const amount = parseInt(fees * 100);
+  console.log("Amount:", amount);
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
+    payment_method_types: ["card"],
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+app.post("/payment", async (req, res) => {
+  const payment = req.body;
+  const paymentResult = await paymentCollection.insertOne(payment);
+  console.log("paymentInfo", payment);
+  // const query = {
+  //   _id: {
+  //     $in: payment.registIds.map((id) => new ObjectId(id)),
+  //   },
+  // };
+  // const deleteResult = await joinCampCollection.deleteMany(query);
+
+  res.send({ paymentResult });
+});
+
+app.patch("/payment/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const updatedDoc = {
+    $set: {
+      status: "confirmed",
+    },
+  };
+
+  const result = await paymentCollection.updateOne(filter, updatedDoc);
+
+  res.send(result);
+});
+
+app.patch("/joinCamp/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+
+  const updatedDoc = {
+    $set: {
+      status: "paid",
+    },
+  };
+
+  try {
+    const result = await joinCampCollection.updateOne(filter, updatedDoc);
+
+    if (result.modifiedCount === 1) {
+      res.send({ success: true, message: "Payment confirmed successfully." });
+    } else {
+      res.status(404).send({ success: false, message: "Payment not found." });
+    }
+  } catch (error) {
+    console.error("Error confirming payment:", error);
+    res.status(500).send({ success: false, message: "Internal Server Error." });
+  }
 });
 
 app.listen(port, (req, res) => {
