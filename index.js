@@ -187,7 +187,7 @@ app.post("/updateInfo/:id", async (req, res) => {
     $set: {
       name: profileInfo.name,
       photoURL: profileInfo.photoURL,
-      role: profileInfo.roll,
+      role: profileInfo.role,
     },
   };
   const result = await userCollection.updateOne(filter, Info, options);
