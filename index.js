@@ -120,17 +120,17 @@ app.patch("/users/admin/:id", async (req, res) => {
   });
 
   app.get("/camp", async (req, res) => {
-    const result = campCollection.find().toArray();
+    const result = await campCollection.find().toArray();
 
     res.send(result);
   });
 });
 
-app.post("/campUpdateInfo/:id", async (req, res) => {
+app.patch("/campUpdateInfo/:id", async (req, res) => {
   const id = req.params.id;
 
   const filter = { _id: new ObjectId(id) };
-  const options = { upsert: true };
+
   const Camp = req.body;
   const campInfo = {
     $set: {
@@ -141,7 +141,7 @@ app.post("/campUpdateInfo/:id", async (req, res) => {
       venueLocation: Camp.venueLocation,
     },
   };
-  const result = await campCollection.updateOne(filter, campInfo, options);
+  const result = await campCollection.updateOne(filter, campInfo);
   res.send(result);
 });
 
