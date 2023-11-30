@@ -6,7 +6,7 @@ const app = express();
 // const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_API_KEY);
-// console.log("Stripe API Key:", process.env.STRIPE_API_KEY);
+
 const port = process.env.PORT || 5005;
 
 app.use(express.json());
