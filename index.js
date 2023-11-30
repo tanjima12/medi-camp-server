@@ -36,11 +36,6 @@ const client = new MongoClient(uri, {
 //   next();
 // };
 
-// const verifyToken = (req, res, next) => {
-//   const token = req.cookies.token;
-//   console.log("token in the middleware", token);
-//   next();
-// };
 const dbConnect = async () => {
   try {
     client.connect();
