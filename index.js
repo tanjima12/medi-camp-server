@@ -1,23 +1,25 @@
 const express = require("express");
-const stripe = require("stripe")(
-  "sk_test_51OHCPOEpZvWySofiQKxIAgubuOMbN7fyhfc2rkvMRcWJgLjA1pF6MpnN3G0wZSq4hBRtbm3AHHPIrXIFXa5VMITQ00AUYXMUxl"
-);
+
 const cors = require("cors");
 const app = express();
-var jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser");
+// var jwt = require("jsonwebtoken");
+// const cookieParser = require("cookie-parser");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_API_KEY);
 // console.log("Stripe API Key:", process.env.STRIPE_API_KEY);
-const port = process.env.PORT || 5004;
+const port = process.env.PORT || 5005;
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: ["http://localhost:5173"],
-    credentials: true,
-  })
-);
-app.use(cookieParser());
+app.use(cors());
+
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5174"],
+
+//     credentials: true,
+//   })
+// );
+// app.use(cookieParser());
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2xzkprd.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -29,16 +31,16 @@ const client = new MongoClient(uri, {
   },
 });
 
-const logger = (req, res, next) => {
-  console.log("log information", req.method, req.url);
-  next();
-};
+// const logger = (req, res, next) => {
+//   console.log("log information", req.method, req.url);
+//   next();
+// };
 
-const verifyToken = (req, res, next) => {
-  const token = req.cookies.token;
-  console.log("token in the middleware", token);
-  next();
-};
+// const verifyToken = (req, res, next) => {
+//   const token = req.cookies.token;
+//   console.log("token in the middleware", token);
+//   next();
+// };
 const dbConnect = async () => {
   try {
     client.connect();
@@ -55,9 +57,27 @@ const userCollection = client.db("mediCamp").collection("users");
 const paymentCollection = client.db("mediCamp").collection("payment");
 const feedbackCollection = client.db("mediCamp").collection("feedback");
 
-// app.get("/camp", async (req, res) => {
-//   const result = await campCollection.find().toArray();
-//   res.send(result);
+app.get("/camp", async (req, res) => {
+  const result = await campCollection.find().toArray();
+  res.send(result);
+});
+
+// app.post("/jwt", async (req, res) => {
+//   const user = req.body;
+//   console.log(user);
+
+//   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, "secret", {
+//     expiresIn: "1h",
+//   });
+//   res.send(token);
+
+//   res
+//     .cookie("token", token, {
+//       httpOnly: true,
+//       secure: false, // http://localhost:5173/login
+//       sameSite: "none",
+//     })
+//     .send({ success: true, token });
 // });
 
 app.get("/campdetails/:id", async (req, res) => {
