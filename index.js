@@ -51,6 +51,7 @@ const joinCampCollection = client.db("mediCamp").collection("joinCamp");
 const userCollection = client.db("mediCamp").collection("users");
 const paymentCollection = client.db("mediCamp").collection("payment");
 const feedbackCollection = client.db("mediCamp").collection("feedback");
+const upComingCollection = client.db("mediCamp").collection("upComing");
 
 app.get("/camp", async (req, res) => {
   const result = await campCollection.find().toArray();
@@ -197,6 +198,18 @@ app.post("/addCamp", async (req, res) => {
   const result = await campCollection.insertOne(newCamp);
   res.send(result);
 });
+app.get("/addUpComing", async (req, res) => {
+  const result = await upComingCollection.find().toArray();
+  res.send(result);
+});
+
+app.post("/addUpComing", async (req, res) => {
+  const upCamp = req.body;
+  console.log(upCamp);
+
+  const result = await upComingCollection.insertOne(upCamp);
+  res.send(result);
+});
 app.post("/feedback", async (req, res) => {
   const feed = req.body;
   console.log(feed);
@@ -304,6 +317,13 @@ app.patch("/joinCamp/:id", async (req, res) => {
     res.status(500).send({ success: false, message: "Internal Server Error." });
   }
 });
+// app.post("/addUpComing", async (req, res) => {
+//   const upCamp = req.body;
+//   console.log(upCamp);
+
+//   const result = await upComingCollection.insertOne(upCamp);
+//   res.send(result);
+// });
 
 app.listen(port, (req, res) => {
   console.log(`medical camp server is running on port:${port}`);
