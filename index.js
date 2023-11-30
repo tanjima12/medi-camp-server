@@ -120,8 +120,8 @@ app.patch("/users/admin/:id", async (req, res) => {
   });
 
   app.get("/camp", async (req, res) => {
-    const result = await campCollection.find().toArray();
-
+    const cursor = campCollection.find();
+    const result = await cursor.toArray();
     res.send(result);
   });
 });
@@ -172,7 +172,8 @@ app.post("/feedback", async (req, res) => {
   res.send(result);
 });
 app.get("/feedback", async (req, res) => {
-  const result = feedbackCollection.find().toArray();
+  const cursor = feedbackCollection.find();
+  const result = await cursor.toArray();
 
   res.send(result);
 });
