@@ -52,6 +52,9 @@ const userCollection = client.db("mediCamp").collection("users");
 const paymentCollection = client.db("mediCamp").collection("payment");
 const feedbackCollection = client.db("mediCamp").collection("feedback");
 const upComingCollection = client.db("mediCamp").collection("upComing");
+const upComingJoiningCollection = client
+  .db("mediCamp")
+  .collection("JoinupComing");
 
 app.get("/camp", async (req, res) => {
   const result = await campCollection.find().toArray();
@@ -82,7 +85,12 @@ app.get("/campdetails/:id", async (req, res) => {
   const result = await campCollection.findOne(query);
   res.send(result);
 });
-
+app.get("/showUpdetails/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await upComingCollection.findOne(query);
+  res.send(result);
+});
 app.get("/popularCamps", async (req, res) => {
   const result = await campCollection
     .find()
@@ -210,17 +218,39 @@ app.post("/addUpComing", async (req, res) => {
   const result = await upComingCollection.insertOne(upCamp);
   res.send(result);
 });
+
+app.post("/joinUpComing", async (req, res) => {
+  const camp = req.body;
+
+  const result = await upComingJoiningCollection.insertOne(camp);
+  res.send(result);
+});
+// app.post("/feedback", async (req, res) => {
+//   console.log(feed);
+
+//   const result = await feedbackCollection.insertOne(feed);
+//   res.send(result);
+// });
+app.get("/feedback", async (req, res) => {
+  let sortObj = {};
+  const sortOrder = req.query.sortOrder || "asc";
+  sortObj.date = sortOrder === "asc" ? 1 : -1;
+
+  console.log("Sort Object:", sortObj);
+
+  const cursor = feedbackCollection.find().sort(sortObj);
+  const result = await cursor.toArray();
+
+  console.log("Sorted Result:", result);
+
+  res.send(result);
+});
+
 app.post("/feedback", async (req, res) => {
   const feed = req.body;
   console.log(feed);
-
+  feed.time = parseInt(feed.time);
   const result = await feedbackCollection.insertOne(feed);
-  res.send(result);
-});
-app.get("/feedback", async (req, res) => {
-  const cursor = feedbackCollection.find();
-  const result = await cursor.toArray();
-
   res.send(result);
 });
 
@@ -246,6 +276,7 @@ app.delete("/campDlt/:id", async (req, res) => {
   const result = await campCollection.deleteOne(query);
   res.send(result);
 });
+
 app.delete("/regisDlt/:id", async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
@@ -324,6 +355,13 @@ app.patch("/joinCamp/:id", async (req, res) => {
 //   const result = await upComingCollection.insertOne(upCamp);
 //   res.send(result);
 // });
+
+app.delete("/campRegisDlt/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await joinCampCollection.deleteOne(query);
+  res.send(result);
+});
 
 app.listen(port, (req, res) => {
   console.log(`medical camp server is running on port:${port}`);
